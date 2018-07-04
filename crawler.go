@@ -107,7 +107,7 @@ func clear() {
 	cmd.Run()
 }
 
-func main() {
+func crawl() {
 	// Construct http client
 	url := "https://gopherize.me/api/artwork/"
 	c := http.Client{
