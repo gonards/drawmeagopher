@@ -11,7 +11,7 @@ import (
 	"io/ioutil"
 )
 
-func main() {
+func render() {
 	var buf bytes.Buffer
 	images := []string{
 		"010-Body/blue_gopher.png",
