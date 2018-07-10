@@ -40,24 +40,27 @@ func getImages() []string {
 	return images
 }
 
-// TO DO - Retrieve folders thanks to config yml
+// getFolders - Get folders associated to categories.
+// The weight is used to implement the probability that a category is not used.
 func getFolders() []string {
-	return []string{
-		"artwork/010-Body",
-		"artwork/020-Eyes",
-		"artwork/021-Shirts",
-		"artwork/022-Hair",
-		"artwork/023-Facial_Hair",
-		"artwork/024-Glasses",
-		"artwork/025-Hats_and_Hair_Accessories",
-		"artwork/027-Extras",
+	var folders []string
+	categories := Conf.Categories
+
+	for _, category := range categories {
+		rand.Seed(time.Now().UnixNano())
+		nb := rand.Intn(10)
+		if nb < category.Weight {
+			folders = append(folders, "artwork/"+category.Name)
+		}
 	}
+
+	return folders
 }
 
 // getRandomFile - Get a random file from a folder.
 func getRandomFile(folder string) string {
 	files := getFiles(folder)
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 	file := files[rand.Intn(len(files)-1)]
 	fmt.Println("  - " + file)
 	return folder + "/" + file
