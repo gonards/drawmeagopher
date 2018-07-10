@@ -12,27 +12,6 @@ import (
 	"time"
 )
 
-// Image struct
-type Image struct {
-	Href          string `json:"href"`
-	ID            string `json:"id"`
-	Name          string `json:"name"`
-	ThumbnailHref string `json:"thumbnail_href"`
-}
-
-// Category struct
-type Category struct {
-	ID     string  `json:"id"`
-	Images []Image `json:"images"`
-	Name   string  `json:"name"`
-}
-
-// Artwork struct
-type Artwork struct {
-	TotalCombinations int        `json:"totalCombination"`
-	Categories        []Category `json:"categories"`
-}
-
 // Unmarshal artwork from raw json
 func unmarshalArtwork(body []byte) (*Artwork, error) {
 	var artwork = new(Artwork)

@@ -8,6 +8,8 @@ func main() {
 	run := flag.String("run", "render", "Run process : crawl|render")
 	flag.Parse()
 
+	parseConfig()
+
 	switch *run {
 	case "crawl":
 		crawl()
