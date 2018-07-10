@@ -6,7 +6,7 @@ import (
 
 func main() {
 	run := flag.String("run", "render", "Run process : crawl|render")
-	flag.Parse() 
+	flag.Parse()
 
 	switch *run {
 	case "crawl":

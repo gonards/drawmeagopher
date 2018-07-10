@@ -2,44 +2,80 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/draw"
 	"image/png"
 	"io"
-	"fmt"
-	"os"
 	"io/ioutil"
+	"log"
+	"math/rand"
+	"os"
+	"time"
 )
 
 func render() {
-	var buf bytes.Buffer
-	images := []string{
-		"010-Body/blue_gopher.png",
-		"020-Eyes/looking_up_no_lashes.png",
-		"021-Shirts/pink_rainbow_shirt.png",
-		"022-Hair/pink_hair_blue_ears.png",
-		"023-Facial_Hair/full_ash_blonde_beard.png",
-		"024-Glasses/movie_glasses.png",
-		"025-Hats_Hair_Accessories/pirate_hat.png",
-		"027-Extras/steampunk_glasses.png",
+	folders := []string{
+		"artwork/010-Body",
+		"artwork/020-Eyes",
+		"artwork/021-Shirts",
+		"artwork/022-Hair",
+		"artwork/023-Facial_Hair",
+		"artwork/024-Glasses",
+		"artwork/025-Hats_and_Hair_Accessories",
+		"artwork/027-Extras",
 	}
 
-	if err := generateimage(&buf, images...); err != nil {
+	var images []string
+	var file string
+
+	fmt.Println("Picked Up Images :")
+	for _, folder := range folders {
+		file = getRandomFile(folder)
+		images = append(images, file)
+	}
+
+	var buf bytes.Buffer
+
+	if err := generateImage(&buf, images...); err != nil {
 		fmt.Println("An error occured")
 	}
 
-	saveimg(&buf)
+	saveImg(&buf)
 }
 
-func saveimg(r io.Reader) {
-	finalimg, _ := os.Create("test.png")
-	defer finalimg.Close()
+func getRandomFile(folder string) string {
+	files := getFiles(folder)
+	rand.Seed(time.Now().Unix())
+	file := files[rand.Intn(len(files)-1)]
+	fmt.Println("  - " + file)
+	return folder + "/" + file
+}
+
+func getFiles(folder string) []string {
+	var files []string
+	filesInfo, err := ioutil.ReadDir(folder)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, fileInfo := range filesInfo {
+		files = append(files, fileInfo.Name())
+	}
+
+	return files
+}
+
+func saveImg(r io.Reader) {
+	finalImg, _ := os.Create("test.png")
+	defer finalImg.Close()
 	bytes, _ := ioutil.ReadAll(r)
-	finalimg.Write(bytes)
+	finalImg.Write(bytes)
+	fmt.Println("Image Saved Properly")
 }
 
-func generateimage(w io.Writer, images ...string) error {
-	imgObjects := loadimages(images...)
+func generateImage(w io.Writer, images ...string) error {
+	imgObjects := loadImages(images...)
 	var first image.Image
 	for _, img := range imgObjects {
 		if img == nil {
@@ -62,18 +98,16 @@ func generateimage(w io.Writer, images ...string) error {
 	return nil
 }
 
-func loadimages(names ...string) []image.Image {
-	prefix := "artwork/" 
+func loadImages(names ...string) []image.Image {
 	imagesList := make([]image.Image, len(names))
 	for i, name := range names {
 		if len(name) == 0 {
 			continue
 		}
-		fImg, _ := os.Open(prefix + name)
-    	defer fImg.Close()
-    	img, _ := png.Decode(fImg)
+		fImg, _ := os.Open(name)
+		defer fImg.Close()
+		img, _ := png.Decode(fImg)
 		imagesList[i] = img
-		fImg.Close()
 	}
 	return imagesList
 }
