@@ -71,6 +71,7 @@ func saveImg(r io.Reader) {
 	defer finalImg.Close()
 	bytes, _ := ioutil.ReadAll(r)
 	finalImg.Write(bytes)
+	fmt.Println("Image Saved Properly")
 }
 
 func generateImage(w io.Writer, images ...string) error {
@@ -107,7 +108,6 @@ func loadImages(names ...string) []image.Image {
 		defer fImg.Close()
 		img, _ := png.Decode(fImg)
 		imagesList[i] = img
-		fImg.Close()
 	}
 	return imagesList
 }
