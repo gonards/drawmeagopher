@@ -2,15 +2,15 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/draw"
 	"image/png"
 	"io"
-	"fmt"
-	"os"
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -32,11 +32,11 @@ func render() {
 	fmt.Println("Picked Up Images :")
 	for _, folder := range folders {
 		file = getrandomfile(folder)
-		images = append(images, file) 
+		images = append(images, file)
 	}
 
 	var buf bytes.Buffer
-	
+
 	if err := generateimage(&buf, images...); err != nil {
 		fmt.Println("An error occured")
 	}
@@ -55,15 +55,15 @@ func getrandomfile(folder string) string {
 func getfiles(folder string) []string {
 	var files []string
 	filesInfo, err := ioutil.ReadDir("./" + folder)
-    if err != nil {
-        log.Fatal(err)
-    }
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    for _, fileInfo := range filesInfo {
-        files = append(files, fileInfo.Name())
-    }
+	for _, fileInfo := range filesInfo {
+		files = append(files, fileInfo.Name())
+	}
 
-    return files
+	return files
 }
 
 func saveimg(r io.Reader) {
@@ -104,8 +104,8 @@ func loadimages(names ...string) []image.Image {
 			continue
 		}
 		fImg, _ := os.Open(name)
-    	defer fImg.Close()
-    	img, _ := png.Decode(fImg)
+		defer fImg.Close()
+		img, _ := png.Decode(fImg)
 		imagesList[i] = img
 		fImg.Close()
 	}
