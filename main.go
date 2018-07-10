@@ -13,5 +13,7 @@ func main() {
 		crawl()
 	case "render":
 		render()
+	case "server":
+		newServer()
 	}
 }

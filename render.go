@@ -14,8 +14,35 @@ import (
 	"time"
 )
 
+// render - Function to render and save a random image
 func render() {
-	folders := []string{
+	var buf bytes.Buffer
+
+	if err := generateImage(&buf); err != nil {
+		log.Println("Unable to generate the image")
+	}
+
+	saveImg(&buf)
+}
+
+// getImages - Get random images from folders.
+// This imageswil l constitute the final image.
+func getImages() []string {
+	folders := getFolders()
+	var images []string
+	var file string
+	fmt.Println("Picked Up Images :")
+	for _, folder := range folders {
+		file = getRandomFile(folder)
+		images = append(images, file)
+	}
+
+	return images
+}
+
+// TO DO - Retrieve folders thanks to config yml
+func getFolders() []string {
+	return []string{
 		"artwork/010-Body",
 		"artwork/020-Eyes",
 		"artwork/021-Shirts",
@@ -25,25 +52,9 @@ func render() {
 		"artwork/025-Hats_and_Hair_Accessories",
 		"artwork/027-Extras",
 	}
-
-	var images []string
-	var file string
-
-	fmt.Println("Picked Up Images :")
-	for _, folder := range folders {
-		file = getRandomFile(folder)
-		images = append(images, file)
-	}
-
-	var buf bytes.Buffer
-
-	if err := generateImage(&buf, images...); err != nil {
-		fmt.Println("An error occured")
-	}
-
-	saveImg(&buf)
 }
 
+// getRandomFile - Get a random file from a folder.
 func getRandomFile(folder string) string {
 	files := getFiles(folder)
 	rand.Seed(time.Now().Unix())
@@ -52,6 +63,7 @@ func getRandomFile(folder string) string {
 	return folder + "/" + file
 }
 
+// getFiles - Get all the files in a folder.
 func getFiles(folder string) []string {
 	var files []string
 	filesInfo, err := ioutil.ReadDir(folder)
@@ -66,6 +78,7 @@ func getFiles(folder string) []string {
 	return files
 }
 
+// saveImg - Save the final Image to current directory.
 func saveImg(r io.Reader) {
 	finalImg, _ := os.Create("test.png")
 	defer finalImg.Close()
@@ -74,7 +87,9 @@ func saveImg(r io.Reader) {
 	fmt.Println("Image Saved Properly")
 }
 
-func generateImage(w io.Writer, images ...string) error {
+// generateImage - Write the final image to a buffer
+func generateImage(w io.Writer) error {
+	images := getImages()
 	imgObjects := loadImages(images...)
 	var first image.Image
 	for _, img := range imgObjects {
@@ -84,6 +99,7 @@ func generateImage(w io.Writer, images ...string) error {
 		first = img
 		break
 	}
+
 	output := image.NewRGBA(first.Bounds())
 	for _, img := range imgObjects {
 		if img == nil {
@@ -91,13 +107,16 @@ func generateImage(w io.Writer, images ...string) error {
 		}
 		draw.Draw(output, output.Bounds(), img, image.ZP, draw.Over)
 	}
+
 	// encode into a buffer
 	if err := png.Encode(w, output); err != nil {
 		return err
 	}
+
 	return nil
 }
 
+// loadImages - Load images.
 func loadImages(names ...string) []image.Image {
 	imagesList := make([]image.Image, len(names))
 	for i, name := range names {
@@ -109,5 +128,6 @@ func loadImages(names ...string) []image.Image {
 		img, _ := png.Decode(fImg)
 		imagesList[i] = img
 	}
+
 	return imagesList
 }
