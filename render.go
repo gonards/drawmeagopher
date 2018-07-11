@@ -2,15 +2,15 @@ package main
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"image"
 	"image/draw"
 	"image/png"
 	"io"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"os"
+	"path"
 	"time"
 )
 
@@ -19,7 +19,7 @@ func render() {
 	var buf bytes.Buffer
 
 	if err := generateImage(&buf); err != nil {
-		log.Println("Unable to generate the image")
+		msg("Unable to generate the image")
 	}
 
 	saveImg(&buf)
@@ -31,7 +31,7 @@ func getImages() []string {
 	folders := getFolders()
 	var images []string
 	var file string
-	fmt.Println("Picked Up Images :")
+	msg("Picked Up Images :")
 	for _, folder := range folders {
 		file = getRandomFile(folder)
 		images = append(images, file)
@@ -44,13 +44,16 @@ func getImages() []string {
 // The weight is used to implement the probability that a category is not used.
 func getFolders() []string {
 	var folders []string
-	categories := Conf.Categories
+	categories := settings.Categories
 
 	for _, category := range categories {
 		rand.Seed(time.Now().UnixNano())
 		nb := rand.Intn(10)
 		if nb < category.Weight {
-			folders = append(folders, "artwork/"+category.Name)
+			folderName := path.Join("artwork", category.Name)
+			if _, err := os.Stat(folderName); err == nil {
+				folders = append(folders, folderName)
+			}
 		}
 	}
 
@@ -62,7 +65,7 @@ func getRandomFile(folder string) string {
 	files := getFiles(folder)
 	rand.Seed(time.Now().UnixNano())
 	file := files[rand.Intn(len(files)-1)]
-	fmt.Println("  - " + file)
+	msg("  - " + file)
 	return folder + "/" + file
 }
 
@@ -71,7 +74,7 @@ func getFiles(folder string) []string {
 	var files []string
 	filesInfo, err := ioutil.ReadDir(folder)
 	if err != nil {
-		log.Fatal(err)
+		msg(err)
 	}
 
 	for _, fileInfo := range filesInfo {
@@ -83,16 +86,23 @@ func getFiles(folder string) []string {
 
 // saveImg - Save the final Image to current directory.
 func saveImg(r io.Reader) {
-	finalImg, _ := os.Create("test.png")
+	imgPath := settings.ImagePath
+	if imgPath == "" {
+		imgPath = "./gopher.png"
+	}
+	finalImg, _ := os.Create(imgPath)
 	defer finalImg.Close()
 	bytes, _ := ioutil.ReadAll(r)
 	finalImg.Write(bytes)
-	fmt.Println("Image Saved Properly")
+	msg("Image Saved Properly")
 }
 
 // generateImage - Write the final image to a buffer
 func generateImage(w io.Writer) error {
 	images := getImages()
+	if len(images) <= 0 {
+		return errors.New("No images found")
+	}
 	imgObjects := loadImages(images...)
 	var first image.Image
 	for _, img := range imgObjects {

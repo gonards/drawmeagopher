@@ -2,20 +2,38 @@ package main
 
 import (
 	"flag"
+	"fmt"
 )
 
+// Custom function for logging
+func msg(v ...interface{}) {
+	if settings.Debug {
+		fmt.Println(v)
+	}
+}
+
 func main() {
-	run := flag.String("run", "render", "Run process : crawl|render")
+	// Get command line flags
+	crawlFlag := flag.Bool("crawl", false, "Crawl images from gopherize.me before rendering")
+	serverFlag := flag.Bool("server", false, "Start in server mode")
 	flag.Parse()
 
-	parseConfig()
+	// Parse yaml configuration
+	err := parseSettings()
+	if err != nil {
+		fmt.Println("Can't parse settings.yml file")
+		return
+	}
 
-	switch *run {
-	case "crawl":
+	// Refresh images if needed
+	if *crawlFlag {
 		crawl()
-	case "render":
-		render()
-	case "server":
+	}
+
+	// Start rendering
+	if *serverFlag {
 		newServer()
+	} else {
+		render()
 	}
 }

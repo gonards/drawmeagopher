@@ -1,20 +1,11 @@
 package main
 
-// Server struct
-type Server struct {
-	Port string `yaml:"port"`
-}
-
-// Render struct
-type Render struct {
-	ImagePath string `yaml:"image_path"`
-}
-
-// Config struct
-type Config struct {
-	Server     Server     `yaml:"server"`
-	Render     Render     `yaml:"render"`
-	Categories []Category `yaml:"categories"`
+// Settings struct
+type Settings struct {
+	ServerAddress string     `yaml:"server_address"`
+	ImagePath     string     `yaml:"image_path"`
+	Debug         bool       `yaml:"debug"`
+	Categories    []Category `yaml:"categories"`
 }
 
 // Image struct

@@ -7,9 +7,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/exec"
 	"path"
+	"strings"
 	"time"
+
+	"github.com/sanity-io/litter"
 )
 
 // Unmarshal artwork from raw json
@@ -57,11 +59,12 @@ func refreshLibrary(artwork *Artwork) error {
 		for j := 0; j < len(category.Images); j++ {
 			image := category.Images[j]
 
-			clear()
-			fmt.Println(category.Name, " [", j+1, "/", len(category.Images), "]")
-			fmt.Println("\nDownloading... ", image.Href)
+			msg(category.Name, " [", j+1, "/", len(category.Images), "]")
+			msg("\nDownloading... ", image.Href)
 
-			err := downloadFile(image.ID, image.Href)
+			path := path.Join("artwork", category.Name, strings.Replace(image.Name, " ", "_", -1)+".png")
+			litter.Dump(path)
+			err := downloadFile(path, image.Href)
 			if err != nil {
 				return err
 			}
@@ -71,19 +74,11 @@ func refreshLibrary(artwork *Artwork) error {
 }
 
 // Calculate time elapsed
-func elapsed(what string) func() {
+func elapsed() func() {
 	start := time.Now()
 	return func() {
-		clear()
-		fmt.Printf("%s took %v\n", what, time.Since(start))
+		msg(fmt.Printf("%s took %v\n", "Crawling", time.Since(start)))
 	}
-}
-
-// Clear terminal (only for Linux)
-func clear() {
-	cmd := exec.Command("clear")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
 }
 
 func crawl() {
@@ -96,26 +91,30 @@ func crawl() {
 	// Execute http call
 	res, err := c.Get(url)
 	if err != nil {
-		panic(err.Error())
+		msg(err.Error())
+		return
 	}
 	defer res.Body.Close()
 
 	// Read result
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		panic(err.Error())
+		msg(err.Error())
+		return
 	}
 
 	// Parse artwork as json
 	artwork, err := unmarshalArtwork(body)
 	if err != nil {
-		panic(err.Error())
+		msg(err.Error())
+		return
 	}
 
 	// Refresh library by downloading images
-	defer elapsed("Refreshing library")()
+	defer elapsed()()
 	err = refreshLibrary(artwork)
 	if err != nil {
-		panic(err.Error())
+		msg(err.Error())
+		return
 	}
 }
